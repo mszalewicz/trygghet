@@ -13,7 +13,7 @@ public class Settings {
     }
 
     private final String settingsPath;
-    private Entries entries;
+    private Entries entries = new Entries();
 
     Settings(String settingsPath) {
         this.settingsPath = settingsPath;
@@ -33,14 +33,25 @@ public class Settings {
             System.exit(1);
         }
 
-        assert result != null : "Opening/parsing of file" + this.settingsPath + " failed. Result is a null object.";
+        try {
+            assert result.isEmpty() : "File" + this.settingsPath + "has no entries.";
+        } catch (AssertionError e) {
+            e.printStackTrace();
+           System.exit(1);
+        }
 
         if (result.hasErrors()) {
+           // TODO implement logging
             System.err.println("file " + this.settingsPath + " contains errors with regards to TOML syntax");
+            System.exit(1);
         } else {
-            long PBEIterationCountFromFile = result.getLong("PBEIterationCount");
-
-            this.entries.PBEIterationCount = PBEIterationCountFromFile;
+           try {
+               assert result.contains("PBEIterationCount") : "Settings TOML does not contain PBEIterationCount entry.";
+           } catch (AssertionError e)  {
+               e.printStackTrace();
+               System.exit(1);
+           }
+           this.entries.PBEIterationCount = result.getLong("PBEIterationCount");
         }
     }
 }

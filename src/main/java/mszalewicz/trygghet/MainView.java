@@ -13,10 +13,7 @@ import java.io.IOException;
 public class MainView extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-
-        // Open passwords
-
-        String passwordsText;
+        Settings settings = new Settings("./settings.toml");
         File passwordsFile = new File("./passwords");
 
         try {
@@ -36,8 +33,6 @@ public class MainView extends Application {
         }
 
         // TODO Read passwords
-
-        // Init view
 
         var initialScale = 0.7;
         FXMLLoader fxmlLoader = new FXMLLoader(MainView.class.getResource("hello-view.fxml"));
