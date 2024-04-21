@@ -8,12 +8,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Settings {
-    private static class Entries {
+    public class Entries {
         public long PBEIterationCount;
+        public String dbFilePath;
     }
 
     private final String settingsPath;
-    private Entries entries = new Entries();
+    public Entries entries = new Entries();
 
     Settings(String settingsPath) {
         this.settingsPath = settingsPath;
@@ -47,11 +48,13 @@ public class Settings {
         } else {
            try {
                assert result.contains("PBEIterationCount") : "Settings TOML does not contain PBEIterationCount entry.";
+               assert result.contains("DBFilePath") : "Settings TOML does not contain PBEIterationCount entry.";
            } catch (AssertionError e)  {
                e.printStackTrace();
                System.exit(1);
            }
            this.entries.PBEIterationCount = result.getLong("PBEIterationCount");
+           this.entries.dbFilePath = result.getString("DBFilePath");
         }
     }
 }
