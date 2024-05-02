@@ -32,10 +32,10 @@ public class CipherTransformations {
     }
 
    public SecretKey getKeyFromPassword(String password, String salt) throws Exception {
-       SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-       KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), this.PBEIterationCount, 256);
-       SecretKey secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
-       return secret;
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), this.PBEIterationCount, 256);
+        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+        return secret;
    }
 
     public static String encrypt(String plaintext, SecretKey key, IvParameterSpec iv) throws Exception {

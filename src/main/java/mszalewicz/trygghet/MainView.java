@@ -16,21 +16,12 @@ public class MainView extends Application {
         Settings settings = new Settings("./settings.toml");
         File passwordsFile = new File("./passwords");
 
-        try {
-            if (passwordsFile.exists()) {
-                System.out.println("opened file \"" + passwordsFile.getName() + "\"");
-            } else {
-                if (passwordsFile.createNewFile()) {
-                    System.out.println("created file:\"" + passwordsFile.getName() + "\"");
-                } else {
-                    System.err.println("could not create file: \"" + passwordsFile.getName() + "\"");
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("could not open/create file:\"" + passwordsFile.getName() + "\"");
-            e.printStackTrace();
-            System.exit(1);
-        }
+
+        var currentWrkDir = System.getProperty("user.dir");
+
+        // Currently using db local to the program itself - to be channged to conform to given os specification where app files should be stored
+        // DB db = new DB(settings.entries.dbFilePath);
+        DB db = new DB(currentWrkDir + "/application.sqlite");
 
         // TODO Read passwords
 

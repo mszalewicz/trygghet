@@ -26,3 +26,4 @@ replay_pid*
 # Custom files, used during application runtime
 passwords
 settings.toml
+application.sqlite
