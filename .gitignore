@@ -23,6 +23,12 @@
 hs_err_pid*
 replay_pid*
 
+# intellij local settings
+.idea
+
+# macos local structures
+.DS_Store
+
 # Custom files, used during application runtime
 passwords
 settings.toml
