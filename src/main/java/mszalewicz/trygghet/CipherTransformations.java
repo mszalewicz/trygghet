@@ -4,6 +4,7 @@ import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -12,31 +13,62 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 
 public class CipherTransformations {
-    private String settingsPath;
-    private int PBEIterationCount;
-    private static String algorithm = "AES/GCM/NoPadding";
+    private final int PBEIterationCount;
+    private static final String algorithm = "AES/GCM/NoPadding";
 
-    CipherTransformations(String settingsPath){
-       this.settingsPath = settingsPath;
+    CipherTransformations(int PBEIterationCount){
+       this.PBEIterationCount = PBEIterationCount;
     }
 
-    public IvParameterSpec generateIv() {
+    public static IvParameterSpec generateIv() {
         byte[] iv = new byte[16];
         new SecureRandom().nextBytes(iv);
         return new IvParameterSpec(iv);
     }
 
-   public SecretKey getKeyFromPassword(String password, String salt) throws Exception {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), this.PBEIterationCount, 256);
-        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
-        return secret;
-   }
+    public static String generateIvString() {
+        byte[] iv = new byte[16];
+        new SecureRandom().nextBytes(iv);
+        return Base64.getEncoder().encodeToString(iv);
+    }
+
+    public static SecretKey generateKey() {
+        SecretKey key = null;
+
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+            keyGenerator.init(256);
+            key = keyGenerator.generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            System.err.println("invalid crypto algorithm in generateKey()");
+            e.printStackTrace();
+        }
+
+        return key;
+    }
+
+    public static String convertSecretKeyToString(SecretKey secretKey) {
+        byte[] rawData = secretKey.getEncoded();
+        String encodedKey = Base64.getEncoder().encodeToString(rawData);
+        return encodedKey;
+    }
+
+    public static String generateKeyString() {
+        SecretKey key = generateKey();
+        return convertSecretKeyToString(key);
+    }
+
+    public static SecretKey convertStringToSecretKey(String encodedKey) {
+        byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+        SecretKey originalKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+        return originalKey;
+    }
 
     public static String encrypt(String plaintext, SecretKey key, IvParameterSpec iv) throws Exception {
         Cipher cipher = Cipher.getInstance(algorithm);
