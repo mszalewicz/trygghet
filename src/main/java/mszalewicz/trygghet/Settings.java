@@ -35,9 +35,9 @@ public class Settings {
         }
 
         try {
-            assert result.isEmpty() : "File" + this.settingsPath + "has no entries.";
+            assert result.isEmpty() : "file" + this.settingsPath + "has no entries.";
         } catch (AssertionError e) {
-            e.printStackTrace();
+           e.printStackTrace();
            System.exit(1);
         }
 
@@ -47,9 +47,10 @@ public class Settings {
             System.exit(1);
         } else {
            try {
-               assert result.contains("PBEIterationCount") : "Settings TOML does not contain PBEIterationCount entry.";
-               assert result.contains("DBFilePath") : "Settings TOML does not contain PBEIterationCount entry.";
+               assert result.contains("PBEIterationCount") : "settings TOML does not contain PBEIterationCount entry.";
+               assert result.contains("DBFilePath") : "settings TOML does not contain DBFilePath entry.";
            } catch (AssertionError e)  {
+               System.err.println("settings file does not contain one of the expected entries");
                e.printStackTrace();
                System.exit(1);
            }
