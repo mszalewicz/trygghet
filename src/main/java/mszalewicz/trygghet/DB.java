@@ -1,16 +1,41 @@
 package mszalewicz.trygghet;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.LocalDateTime;
 
 public class DB {
+    public class DatabaseReturn {
+        public Exception exception = null;
+        public boolean queryExecuted = true;
+        public long count = Long.MIN_VALUE;
+        public QueryType type;
+        public String info = null;
+
+       DatabaseReturn(QueryType type)  {
+           this.type = type;
+       }
+    }
+
+    public static enum QueryType {
+        COUNT
+    }
+
+    public static enum Tables {
+        PASSWORDS("passwords"),
+        PASSWORDS_COPY("passwords_tmp_copy"),
+        MASTER("master"),
+        CRYPTO("crypto");
+
+        public final String name;
+
+        private Tables(String name) {
+            this.name = name;
+        }
+    }
+
     private final String dbFilePathname;
     private final Connection connection;
-
 
     DB(String pathname) {
         File f = new File(pathname);
@@ -39,13 +64,17 @@ public class DB {
         } catch (SQLException e) {
             //TODO better logging
             System.err.println("db connection error during db boostrapping");
+            System.err.println("sql error code: " + e.getErrorCode());
             e.printStackTrace();
             System.exit(1);
         }
 
-        createdDBWithScheme = bootstrapDB(conn);
+        if (isNewDb) {
+            createdDBWithScheme = bootstrapDB(conn);
+        }
 
         if (!createdDBWithScheme) {
+            //TODO better logging
             System.err.println("could not boostrap db with scheme");
             System.exit(1);
         }
@@ -54,70 +83,182 @@ public class DB {
         this.dbFilePathname = pathname;
     }
 
-    public boolean bootstrapDB(Connection conn) {
-        try (Statement statement = conn.createStatement()) {
+    private boolean bootstrapDB(Connection conn) {
+        Statement statement = null;
+
+        try {
+            statement =  conn.createStatement();
 
             String createPasswordsTable = """
-                CREATE TABLE passwords (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT UNIQUE NOT NULL,
-                    password TEXT UNIQUE NOT NULL,
-                    created_at TIMESTAMP NULL,
-                    updated_at TIMESTAMP NULL
-                );
+                    CREATE TABLE passwords (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT UNIQUE NOT NULL,
+                        password TEXT UNIQUE NOT NULL,
+                        created_at TIMESTAMP NULL,
+                        updated_at TIMESTAMP NULL
+                    );
                 """;
 
             statement.execute(createPasswordsTable);
+            // -----------------------------------------------------
+
+            String createPasswordsTmpCopyTable = """
+                    CREATE TABLE passwords_tmp_copy (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT UNIQUE NOT NULL,
+                        password TEXT UNIQUE NOT NULL,
+                        created_at TIMESTAMP NULL,
+                        updated_at TIMESTAMP NULL
+                    );
+                """;
+
+            statement.execute(createPasswordsTmpCopyTable);
+            // -----------------------------------------------------
+
+            String createMasterTable = """
+                    CREATE TABLE master (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        password TEXT UNIQUE NOT NULL,
+                        created_at TIMESTAMP NULL,
+                        updated_at TIMESTAMP NULL
+                    );
+                """;
+
+            statement.execute(createMasterTable);
+            // -----------------------------------------------------
+
+            String createCryptoTable = """
+                    CREATE TABLE crypto (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        secret_key TEXT UNIQUE NOT NULL,
+                        iv TEXT UNIQUE NOT NULL,
+                        created_at TIMESTAMP NULL,
+                        updated_at TIMESTAMP NULL
+                    );
+                """;
+
+            statement.execute(createCryptoTable);
 
         } catch (SQLException e) {
-            // TODO add logging
+            //TODO better logging
             System.err.println("error during db bootstrapping");
+            System.err.println("sql error code: " + e.getErrorCode());
             e.printStackTrace();
-
-           // TODO delete db and create new one but only during bootstrapping phase
-
             return false;
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    //TODO better logging
+                    System.err.println("could not close sql statement after bootstrapping db with scheme");
+                    System.err.println("sql error code: " + e.getErrorCode());
+                    e.printStackTrace();
+                }
+            }
         }
         return true;
     }
 
-    public boolean test() {
-        try
-        (
-            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + this.dbFilePathname);
-            Statement statement = connection.createStatement();
-        ) {
-            statement.setQueryTimeout(30);  // set timeout to 30 sec.
+    public DatabaseReturn countAllEntriesOfTable(Tables table) {
+        Statement statement = null;
+        DatabaseReturn dbret = new DatabaseReturn(QueryType.COUNT);
 
-            statement.executeUpdate("drop table if exists person");
-            statement.executeUpdate("create table person (id integer, name string)");
-            statement.executeUpdate("insert into person values(1, 'leo')");
-            statement.executeUpdate("insert into person values(2, 'yui')");
-            ResultSet rs = statement.executeQuery("select * from person");
-            while (rs.next()) {
-                // read the result set
-                System.out.println("name = " + rs.getString("name"));
-                System.out.println("id = " + rs.getInt("id"));
+        try {
+            String sqlQuery = "SELECT COUNT(*) AS count FROM " + table.name + ";";
+            statement = this.connection.createStatement();
+            boolean queryReturnedValue = statement.execute(sqlQuery);
+
+            if (queryReturnedValue) {
+                var queryResultSet = statement.getResultSet();
+
+                if ( queryResultSet != null && queryResultSet.next()) {
+                    dbret.count = queryResultSet.getInt("count");
+                }
             }
         } catch (SQLException e) {
-            // if the error message is "out of memory",
-            // it probably means no database file is found
-            e.printStackTrace(System.err);
-
-            return false;
+            // todo add better logging
+            System.err.println("could not execute count query");
+            e.printStackTrace();
+            dbret.exception = e;
+            dbret.queryExecuted = false;
+            return dbret;
+        } finally {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+               // todo add better logging
+                System.err.println("could not close db statement");
+            }
         }
 
+        return dbret;
+    }
+
+    public boolean masterPasswordExists() {
+        int masterPasswordOccurrences = Integer.MIN_VALUE;
+        String sqlQuery = "SELECT count(*) AS count FROM master;";
+
+        try {
+            Statement statement = connection.createStatement();
+            statement.execute(sqlQuery);
+            masterPasswordOccurrences = statement.getResultSet().getInt("count");
+        } catch (SQLException e) {
+            // todo better logging
+            System.err.println("could not execute query for masterPasswordExists");
+            e.printStackTrace();
+        }
+
+        return masterPasswordOccurrences == 1;
+    }
+
+    public boolean insertFirstMasterPassword(String newPassword) {
+        try {
+            String sqlQuery = "INSERT INTO master (password, created_at, updated_at) VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);";
+            PreparedStatement preparedStatement = this.connection.prepareStatement(sqlQuery);
+
+            preparedStatement.setString(1, newPassword);
+
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected != 1) {
+                System.err.println("insert statement executed incorrectly, expected insert of 1 row, received insert of " + rowsAffected + " rows");
+                System.exit(1);
+            }
+        } catch (SQLException e) {
+            //TODO add better logging
+            //TODO add better logging
+            System.err.println("could not insert new master passwords to db");
+            System.err.println("sql error code: " + e.getErrorCode());
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean insertCryptoPrimitives(String secretKey, String iv) {
+        String sqlQuery = """
+               INSERT INTO crypto
+                   (secret_key, iv, created_at, updated_at)
+               VALUES
+                   (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+               """;
+
+        try {
+            PreparedStatement preparedStatement = this.connection.prepareStatement(sqlQuery);
+            preparedStatement.setString(1, secretKey);
+            preparedStatement.setString(2, iv);
+            int rowsAffected = preparedStatement.executeUpdate();
+            // TODO add better logging
+            System.err.println("inserted " + rowsAffected + " row(s) into crypto table");
+        } catch (SQLException e) {
+            //TODO add better logging
+            System.err.println("could not insert crypto primitives");
+            return false;
+        }
         return true;
     }
 }
-
-/*
-File f = new File(filePathString);
-if(f.exists() && f.isFile()) {
-    //do something ...
-}
- */
-
 
 
 
