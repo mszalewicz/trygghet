@@ -5,3 +5,26 @@ CREATE TABLE passwords (
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL
 );
+
+CREATE TABLE passwords_tmp_copy (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    password TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+
+CREATE TABLE master (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    password TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+
+CREATE TABLE crypto (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    iv TEXT UNIQUE NOT NULL,
+    secret_key TEXT UNIQUE NOT NULL
+    created_at TIMESTAMP NULL
+    updated_at TIMESTAMP NULL
+);
