@@ -49,9 +49,15 @@ public class Main extends Application {
 
         public void switchScene(SceneManager.Scenes enumScene) {
             stage.setTitle("Trygghet");
+//            Scene newScene = getScene(enumScene);
+//            newScen
             stage.setScene(getScene(enumScene));
             stage.show();
             stage.centerOnScreen();
+        }
+
+        public void setStageMaxWidth(double newMaxWidth) {
+            this.stage.setMaxWidth(newMaxWidth);
         }
 
     }
@@ -113,6 +119,8 @@ public class Main extends Application {
         mainController.setSceneManager(sceneManager);
         Rectangle2D screenBounds = Screen.getPrimary().getBounds();
         Scene mainScene = new Scene(root, screenBounds.getMaxX() * initialScale, screenBounds.getMaxY() * initialScale);
+
+
 
         sceneManager.setScene(SceneManager.Scenes.MAIN, mainScene);
 
