@@ -26,8 +26,9 @@ replay_pid*
 # intellij local settings
 .idea
 
-# build folder
+# build and out folders
 target
+out
 
 # macos local structures
 .DS_Store
