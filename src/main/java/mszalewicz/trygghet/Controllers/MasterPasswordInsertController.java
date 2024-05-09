@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import mszalewicz.trygghet.DB;
 import mszalewicz.trygghet.Main;
+import mszalewicz.trygghet.ManagerModel;
 
 public class MasterPasswordInsertController {
     @FXML
@@ -16,8 +17,13 @@ public class MasterPasswordInsertController {
     @FXML
     private Label confirmErrorLabel;
 
-    private DB db;
+    private ManagerModel model;
     private Main.SceneManager sceneManager;
+
+    public MasterPasswordInsertController(ManagerModel model, Main.SceneManager sceneManager) {
+        this.model = model;
+        this.sceneManager = sceneManager;
+    }
 
     public void initialize() {
         Platform.runLater(() -> masterPasswordFirstInput.requestFocus());
@@ -38,7 +44,7 @@ public class MasterPasswordInsertController {
         }
 
         if (passInputOne.equals(passInputTwo)) {
-            db.insertFirstMasterPassword(passInputOne);
+            model.insertFirstMasterPassword(passInputOne);
             sceneManager.switchScene(Main.SceneManager.Scenes.MAIN);
         } else {
             passwordsProblem(PasswordsErrors.NOT_EQUAL);
@@ -59,9 +65,6 @@ public class MasterPasswordInsertController {
         }
     }
 
-    public void setDb(DB db) {
-        this.db = db;
-    }
 
     public void setSceneManager(Main.SceneManager sceneManager) {
         this.sceneManager = sceneManager;
