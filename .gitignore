@@ -37,3 +37,4 @@ out
 passwords
 settings.toml
 application.sqlite
+db_actions.sql
