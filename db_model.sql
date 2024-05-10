@@ -1,7 +1,7 @@
 CREATE TABLE passwords (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
-    password TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL
 );
@@ -9,7 +9,7 @@ CREATE TABLE passwords (
 CREATE TABLE passwords_tmp_copy (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
-    password TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL
 );

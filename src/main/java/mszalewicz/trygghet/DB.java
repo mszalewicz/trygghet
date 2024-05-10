@@ -3,6 +3,8 @@ package mszalewicz.trygghet;
 import java.io.File;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DB {
     public class DatabaseReturn {
@@ -93,7 +95,7 @@ public class DB {
                     CREATE TABLE passwords (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT UNIQUE NOT NULL,
-                        password TEXT UNIQUE NOT NULL,
+                        password TEXT NOT NULL,
                         created_at TIMESTAMP NULL,
                         updated_at TIMESTAMP NULL
                     );
@@ -106,7 +108,7 @@ public class DB {
                     CREATE TABLE passwords_tmp_copy (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT UNIQUE NOT NULL,
-                        password TEXT UNIQUE NOT NULL,
+                        password TEXT NOT NULL,
                         created_at TIMESTAMP NULL,
                         updated_at TIMESTAMP NULL
                     );
@@ -258,6 +260,43 @@ public class DB {
         }
         return true;
     }
+
+    public List<String> getAllServiceName() {
+        List<String> serviceNames = new ArrayList<String>();
+        String sqlQuery = "SELECT name FROM passwords;";
+
+        try {
+            Statement statement = this.connection.createStatement();
+            statement.execute(sqlQuery);
+            ResultSet result = statement.getResultSet();
+
+            while (result.next()) {
+                serviceNames.add(result.getString("name"));
+            }
+        } catch (SQLException e) {
+            // todo better logging
+            System.err.println("could not run db query to get all password service names");
+            e.printStackTrace();
+        }
+
+        return serviceNames;
+    }
+
+    public void deletePasswordEntry(String serviceName) {
+       String sqlQuery = "DELETE FROM passwords WHERE name = ?";
+
+       try {
+          PreparedStatement preparedStatement = this.connection.prepareStatement(sqlQuery);
+          preparedStatement.setString(1, serviceName);
+          preparedStatement.execute();
+       } catch (SQLException e) {
+           // todo better logging
+           System.err.println("could not run delete sql query");
+           e.printStackTrace();
+       }
+    }
+
+
 }
 
 
