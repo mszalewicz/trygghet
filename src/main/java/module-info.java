@@ -3,6 +3,7 @@ module mszalewicz.trygghet {
     requires javafx.fxml;
     requires org.tomlj;
     requires java.sql;
+    requires java.desktop;
 
 
     opens mszalewicz.trygghet to javafx.fxml;
