@@ -14,9 +14,9 @@ public class DB {
         public QueryType type;
         public String info = null;
 
-       DatabaseReturn(QueryType type)  {
-           this.type = type;
-       }
+        DatabaseReturn(QueryType type) {
+            this.type = type;
+        }
     }
 
     public static enum QueryType {
@@ -55,7 +55,7 @@ public class DB {
         String url = "jdbc:sqlite:" + pathname;
         Connection conn = null;
 
-        try  {
+        try {
             conn = DriverManager.getConnection(url);
 
             if (conn == null) {
@@ -89,55 +89,55 @@ public class DB {
         Statement statement = null;
 
         try {
-            statement =  conn.createStatement();
+            statement = conn.createStatement();
 
             String createPasswordsTable = """
-                    CREATE TABLE passwords (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT UNIQUE NOT NULL,
-                        password TEXT NOT NULL,
-                        created_at TIMESTAMP NULL,
-                        updated_at TIMESTAMP NULL
-                    );
-                """;
+                        CREATE TABLE passwords (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name TEXT UNIQUE NOT NULL,
+                            password TEXT NOT NULL,
+                            created_at TIMESTAMP NULL,
+                            updated_at TIMESTAMP NULL
+                        );
+                    """;
 
             statement.execute(createPasswordsTable);
             // -----------------------------------------------------
 
             String createPasswordsTmpCopyTable = """
-                    CREATE TABLE passwords_tmp_copy (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT UNIQUE NOT NULL,
-                        password TEXT NOT NULL,
-                        created_at TIMESTAMP NULL,
-                        updated_at TIMESTAMP NULL
-                    );
-                """;
+                        CREATE TABLE passwords_tmp_copy (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name TEXT UNIQUE NOT NULL,
+                            password TEXT NOT NULL,
+                            created_at TIMESTAMP NULL,
+                            updated_at TIMESTAMP NULL
+                        );
+                    """;
 
             statement.execute(createPasswordsTmpCopyTable);
             // -----------------------------------------------------
 
             String createMasterTable = """
-                    CREATE TABLE master (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        password TEXT UNIQUE NOT NULL,
-                        created_at TIMESTAMP NULL,
-                        updated_at TIMESTAMP NULL
-                    );
-                """;
+                        CREATE TABLE master (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            password TEXT UNIQUE NOT NULL,
+                            created_at TIMESTAMP NULL,
+                            updated_at TIMESTAMP NULL
+                        );
+                    """;
 
             statement.execute(createMasterTable);
             // -----------------------------------------------------
 
             String createCryptoTable = """
-                    CREATE TABLE crypto (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        secret_key TEXT UNIQUE NOT NULL,
-                        iv TEXT UNIQUE NOT NULL,
-                        created_at TIMESTAMP NULL,
-                        updated_at TIMESTAMP NULL
-                    );
-                """;
+                        CREATE TABLE crypto (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            secret_key TEXT UNIQUE NOT NULL,
+                            iv TEXT UNIQUE NOT NULL,
+                            created_at TIMESTAMP NULL,
+                            updated_at TIMESTAMP NULL
+                        );
+                    """;
 
             statement.execute(createCryptoTable);
 
@@ -174,7 +174,7 @@ public class DB {
             if (queryReturnedValue) {
                 var queryResultSet = statement.getResultSet();
 
-                if ( queryResultSet != null && queryResultSet.next()) {
+                if (queryResultSet != null && queryResultSet.next()) {
                     dbret.count = queryResultSet.getInt("count");
                 }
             }
@@ -189,7 +189,7 @@ public class DB {
             try {
                 statement.close();
             } catch (SQLException e) {
-               // todo add better logging
+                // todo add better logging
                 System.err.println("could not close db statement");
             }
         }
@@ -240,11 +240,11 @@ public class DB {
 
     public boolean insertCryptoPrimitives(String secretKey, String iv) {
         String sqlQuery = """
-               INSERT INTO crypto
-                   (secret_key, iv, created_at, updated_at)
-               VALUES
-                   (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-               """;
+                INSERT INTO crypto
+                    (secret_key, iv, created_at, updated_at)
+                VALUES
+                    (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+                """;
 
         try {
             PreparedStatement preparedStatement = this.connection.prepareStatement(sqlQuery);
@@ -283,36 +283,38 @@ public class DB {
     }
 
     public void deletePasswordEntry(String serviceName) {
-       String sqlQuery = "DELETE FROM passwords WHERE name = ?";
+        String sqlQuery = "DELETE FROM passwords WHERE name = ?";
 
-       try {
-          PreparedStatement preparedStatement = this.connection.prepareStatement(sqlQuery);
-          preparedStatement.setString(1, serviceName);
-          preparedStatement.execute();
-       } catch (SQLException e) {
-           // todo better logging
-           System.err.println("could not run delete sql query");
-           e.printStackTrace();
-       }
+        try {
+            PreparedStatement preparedStatement = this.connection.prepareStatement(sqlQuery);
+            preparedStatement.setString(1, serviceName);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            // todo better logging
+            System.err.println("could not run delete sql query");
+            e.printStackTrace();
+        }
     }
 
+    public void insertNewPassword(String serviceName, String newEncryptedPassword) {
+        String sqlQuery = """
+                INSERT INTO passwords
+                    (name, password, created_at, updated_at)
+                VALUES
+                    (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+                """;
 
+        try {
+            PreparedStatement preparedStatement = this.connection.prepareStatement(sqlQuery);
+            preparedStatement.setString(1, serviceName);
+            preparedStatement.setString(2, newEncryptedPassword);
+        } catch (SQLException e) {
+            // todo better logging
+            System.err.println("could not insert new password entry into db");
+            e.printStackTrace();
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
