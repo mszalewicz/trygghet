@@ -57,9 +57,21 @@ public class ManagerModel {
         this.db.insertFirstMasterPassword(newPassword);
     }
 
+    public void deletePasswordEntry(String serviceName) {
+        db.deletePasswordEntry(serviceName);
+    }
+
     public List<String> getAllPasswordServiceNames() {
         List<String> serviceNames = new ArrayList<String>();
         serviceNames = this.db.getAllServiceName();
         return serviceNames;
     }
+
+    public void insertNewPassword(String serviceName, String newPassword) {
+        // todo encrypt password
+       String encryptedPassword = newPassword;
+       this.db.insertNewPassword(serviceName, encryptedPassword);
+    }
+
+
 }

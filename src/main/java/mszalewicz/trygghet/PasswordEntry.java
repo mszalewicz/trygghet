@@ -4,8 +4,8 @@ import javax.crypto.Cipher;
 import java.io.File;
 
 public class PasswordEntry {
-    private boolean deleted = false;
-    private String passwordHash;
+    public boolean deleted = false;
+    private String  passwordHash;
     private String name;
     private File storage;
 
