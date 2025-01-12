@@ -3,15 +3,14 @@ package mszalewicz.trygghet.Controllers;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -30,7 +29,10 @@ public class MainController {
     private Label welcomeText;
     @FXML
     private ScrollPane passwordList;
+    @FXML
+    private HBox bottomControls;
 
+    public double windowHeight;
     private ManagerModel model;
     private Main.SceneManager sceneManager;
 
@@ -40,13 +42,14 @@ public class MainController {
     }
 
     public void initialize() {
-
-
-//        backgroundVBox.widthProperty().addListener((observable -> {
-//            welcomeText.setText(Double.toString(backgroundVBox.getWidth()));
-//        }));
-
+        passwordList.setMinHeight(this.windowHeight * 0.8);
         passwordList.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        populatePasswordEntriesList();
+    }
+
+    public void populatePasswordEntriesList() {
+        passwordList.setContent(null);
+        bottomControls.getChildren().clear();
 
         VBox passwordsContainer = new VBox();
 
@@ -59,120 +62,129 @@ public class MainController {
         List<String> serviceNames = this.model.getAllPasswordServiceNames();
 
         for (String service : serviceNames) {
-            Label lb1 = prepareServiceName(" " + service);
-            Separator separator = new Separator();
-            separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
-            Separator separator2 = new Separator();
-            separator2.setOrientation(javafx.geometry.Orientation.VERTICAL);
-            Label lb2 = preparePasswordPlaceholder();
+            // Create label - store service name, password and white space separators in form of labels
+            Label spaceLabel_1 = new Label(" ");
+            spaceLabel_1.setFont(new Font("Courier New", 35));
+            Label spaceLabel_2 = new Label(" ");
+            spaceLabel_2.setFont(new Font("Courier New", 35));
+            Label serviceNameLabel = new Label(service);
+            serviceNameLabel.setFont(new Font("Courier New", 35));
+            serviceNameLabel.setId("serviceName");
+            Label serviceNameOffsetLabel = prepareOffsetLabel(service);
+            serviceNameOffsetLabel.setFont(new Font("Courier New", 35));
+            Label passwordPlaceholderLabel = preparePasswordPlaceholder();
+            passwordPlaceholderLabel.setFont(new Font("Courier New", 35));
 
-            Button btn1 = new Button("COPY");
-            btn1.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
-            btn1.setMaxWidth(100);
-            btn1.setMinWidth(100);
-//            btn1.setFocusTraversable(false);
+            // Create vertical separators
+            Separator separator_1 = new Separator();
+            separator_1.setOrientation(javafx.geometry.Orientation.VERTICAL);
+            Separator separator_2 = new Separator();
+            separator_2.setOrientation(javafx.geometry.Orientation.VERTICAL);
 
-            btn1.setOnMouseClicked(event -> deletePasswordEntryOnClick(event));
-//            btn1.setOnAction(actionEvent -> deletePasswordEntry());
+            // Create action buttons for the given password entry row
+            Button copyPasswordButton = new Button("COPY");
+            copyPasswordButton.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
+            copyPasswordButton.setMaxWidth(100);
+            copyPasswordButton.setMinWidth(100);
+            copyPasswordButton.setFocusTraversable(false);
 
-            Button btn2 = new Button("CHANGE");
-            btn2.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
-            btn2.setMaxWidth(100);
-            btn2.setMinWidth(100);
-            btn2.setFocusTraversable(false);
+            Button changePasswordButton = new Button("CHANGE");
+            changePasswordButton.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
+            changePasswordButton.setMaxWidth(100);
+            changePasswordButton.setMinWidth(100);
+            changePasswordButton.setFocusTraversable(false);
 
-            Button btn3 = new Button("DELETE");
-            btn3.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
-            btn3.setMaxWidth(100);
-            btn3.setMinWidth(100);
-            btn3.setFocusTraversable(false);
+            Button deletePasswordButton = new Button("DELETE");
+            deletePasswordButton.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
+            deletePasswordButton.setMaxWidth(100);
+            deletePasswordButton.setMinWidth(100);
+            deletePasswordButton.setFocusTraversable(false);
+            deletePasswordButton.setOnMouseClicked(this::deletePasswordEntryOnClick);
 
+            // Create Vbox containers for buttons to center them vertically in a given row
+            VBox vBox_1 = new VBox();
+            VBox vBox_2 = new VBox();
+            VBox vBox_3 = new VBox();
 
-            HBox hbox = new HBox();
-            hbox.getChildren().addAll(
-                    lb1,
-                    separator,
-                    getInvisibleSeparator(),
-                    lb2,
-                    separator2,
-                    getInvisibleSeparator(),
-                    btn1,
-                    getInvisibleSeparator(),
-                    btn2,
-                    getInvisibleSeparator(),
-                    btn3,
-                    getInvisibleSeparator()
+            vBox_1.getChildren().add(copyPasswordButton);
+            vBox_2.getChildren().add(changePasswordButton);
+            vBox_3.getChildren().add(deletePasswordButton);
+
+            vBox_1.setAlignment(Pos.CENTER);
+            vBox_2.setAlignment(Pos.CENTER);
+            vBox_3.setAlignment(Pos.CENTER);
+
+            // Pack all row ui components into container
+            HBox row = new HBox();
+            row.getChildren().addAll(
+                    spaceLabel_1,
+                    serviceNameLabel,
+                    serviceNameOffsetLabel,
+                    separator_1,
+                    spaceLabel_2,
+                    passwordPlaceholderLabel,
+                    getInvisibleRegionSeparator(),
+                    separator_2,
+                    getInvisibleRegionSeparator(),
+                    vBox_1,
+                    getInvisibleRegionSeparator(),
+                    vBox_2,
+                    getInvisibleRegionSeparator(),
+                    vBox_3,
+                    getInvisibleRegionSeparator()
             );
-//            hbox.setMaxWidth(Double.MAX_VALUE);
-            hbox.maxWidthProperty().bind(backgroundVBox.widthProperty());
-
-
-            passwordsContainer.getChildren().addAll(hbox);
+            passwordsContainer.getChildren().addAll(row);
         }
-
-
-//        for (int i = 0; i < 50; i++) {
-//            Label lb1 = prepareServiceName("serviceName" + i);
-//            Separator separator = new Separator();
-//            separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
-//            Separator separator2 = new Separator();
-//            separator2.setOrientation(javafx.geometry.Orientation.VERTICAL);
-//            Label lb2 = preparePasswordPlaceholder();
-//
-//            Button btn1 = new Button("COPY");
-//            btn1.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
-//            btn1.setMaxWidth(100);
-//            btn1.setMinWidth(100);
-//            btn1.setFocusTraversable(false);
-//
-//            Button btn2 = new Button("CHANGE");
-//            btn2.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
-//            btn2.setMaxWidth(100);
-//            btn2.setMinWidth(100);
-//            btn2.setFocusTraversable(false);
-//
-//            Button btn3 = new Button("DELETE");
-//            btn3.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
-//            btn3.setMaxWidth(100);
-//            btn3.setMinWidth(100);
-//            btn3.setFocusTraversable(false);
-//
-//
-//            HBox hbox = new HBox();
-//            hbox.getChildren().addAll(
-//                    lb1,
-//                    separator,
-//                    getInvisibleSeparator(),
-//                    lb2,
-//                    separator2,
-//                    getInvisibleSeparator(),
-//                    btn1,
-//                    getInvisibleSeparator(),
-//                    btn2,
-//                    getInvisibleSeparator(),
-//                    btn3,
-//                    getInvisibleSeparator()
-//            );
-////            hbox.setMaxWidth(Double.MAX_VALUE);
-//            hbox.maxWidthProperty().bind(backgroundVBox.widthProperty());
-//
-//
-//            passwordsContainer.getChildren().addAll(hbox);
-//        }
         passwordList.setContent(passwordsContainer);
+
+        // Create bottom controls
+
+        Button newPasswordEntryButton = new Button("New password");
+        newPasswordEntryButton.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
+//        newPasswordEntryButton.setPrefWidth(Double.MAX_VALUE);
+        newPasswordEntryButton.setMaxWidth(Double.MAX_VALUE);
+//        newPasswordEntryButton.setMinWidth(100);
+        newPasswordEntryButton.setPrefWidth(Control.USE_COMPUTED_SIZE);
+        newPasswordEntryButton.setOnMouseClicked(this::openCreatePasswordEntryViewOnClick);
+        newPasswordEntryButton.setMaxWidth(300);
+        newPasswordEntryButton.setMinWidth(300);
+        newPasswordEntryButton.setMinHeight(40);
+        newPasswordEntryButton.setMaxHeight(40);
+
+        Button changeMasterPasswordButton = new Button("Change master password");
+        changeMasterPasswordButton.setStyle("-fx-text-fill: white; -fx-background-color: black; -fx-font-weight: bold;");
+//        changeMasterPasswordButton.setMaxWidth(Double.MAX_VALUE);
+        changeMasterPasswordButton.setPrefWidth(Control.USE_COMPUTED_SIZE);
+        changeMasterPasswordButton.setMaxWidth(300);
+        changeMasterPasswordButton.setMinWidth(300);
+        changeMasterPasswordButton.setMinHeight(40);
+        changeMasterPasswordButton.setMaxHeight(40);
+
+        bottomControls.setMinHeight(40);
+        bottomControls.setSpacing(50);
+        bottomControls.getChildren().addAll(newPasswordEntryButton, changeMasterPasswordButton);
+//        HBox.setHgrow(newPasswordEntryButton, javafx.scene.layout.Priority.ALWAYS);
+//        HBox.setHgrow(changeMasterPasswordButton, javafx.scene.layout.Priority.ALWAYS);
+//        bottomControls.setStyle("-fx-background-color: blue;");
+
+
     }
 
     private void deletePasswordEntryOnClick(MouseEvent event) {
         Button btnDelete = (Button) event.getSource();
-        Parent pr = btnDelete.getParent();
+        Parent rowContainer = btnDelete.getParent().getParent();
 
+        ObservableList<Node> childrenUnmodifiable = rowContainer.getChildrenUnmodifiable();
+        Node serviceNameNode = childrenUnmodifiable.get(1);
+        Label serviceLabel = (Label) serviceNameNode;
 
-        ObservableList<Node> childrenUnmodifiable = btnDelete.getParent().getChildrenUnmodifiable();
-        Node serviceName = childrenUnmodifiable.getFirst();
-        Label serviceLabel = (Label) serviceName;
-        serviceLabel.getText();
+        model.deletePasswordEntry(serviceLabel.getText());
+        populatePasswordEntriesList();
+    }
 
-        System.err.println(serviceLabel.getText());
+    private void openCreatePasswordEntryViewOnClick(MouseEvent event) {
+        // todo implement creating new password entry, including crypto + view
+        this.sceneManager.switchScene(Main.SceneManager.Scenes.CREATE_PASSWORD_ENTRY);
     }
 
     @FXML
@@ -180,26 +192,16 @@ public class MainController {
         welcomeText.setText("Welcome to JavaFX Application!");
     }
 
-    @FXML
-    public void deletePasswordEntry() {
-
-    }
-
-    public void setSceneManager(Main.SceneManager sceneManager) {
-        this.sceneManager = sceneManager;
-    }
-
-    public Label prepareServiceName(String serviceName) {
+    public Label prepareOffsetLabel(String serviceName) {
         int maxLabelLength = 15;
-        Label serviceLabel = new Label();
-        serviceLabel.setFont(new Font("Courier New", 35));
-        serviceLabel.setId("serviceName");
+        Label offsetLabel = new Label();
+        offsetLabel.setFont(new Font("Courier New", 35));
+        offsetLabel.setId("serviceName");
         int whiteCharactersOffsetLength = maxLabelLength - serviceName.length();
         StringBuilder whiteCharactersOffset = new StringBuilder();
         whiteCharactersOffset.append(" ".repeat(whiteCharactersOffsetLength));
-
-        serviceLabel.setText(serviceName + whiteCharactersOffset.toString());
-        return serviceLabel;
+        offsetLabel.setText(whiteCharactersOffset.toString());
+        return offsetLabel;
     }
 
     public Label preparePasswordPlaceholder() {
@@ -214,7 +216,7 @@ public class MainController {
         return passwordLabel;
     }
 
-    public Region getInvisibleSeparator() {
+    public Region getInvisibleRegionSeparator() {
         Region separator = new Region();
         separator.setPrefWidth(20);
         separator.setMinHeight(0);
@@ -222,5 +224,4 @@ public class MainController {
         separator.setStyle("-fx-background-color: transparent;");
         return separator;
     }
-
 }

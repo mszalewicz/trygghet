@@ -34,6 +34,7 @@ public class ManagerModel {
         DB.DatabaseReturn returnedCountCryptoTable = this.db.countAllEntriesOfTable(DB.Tables.CRYPTO);
         if (returnedCountCryptoTable.queryExecuted) { cryptoCount = returnedCountCryptoTable.count; }
 
+        // TODO: do i need to check for copies here? probably better would be to check for copies and if they exist they should populate main tables
         if (masterCount != 0 || passwordsCount != 0 || passwordsCopyCount != 0 || cryptoCount != 0) {
             System.out.println("some tables are not empty");
             return BootstrapDB.NOT_DONE;

@@ -25,6 +25,6 @@ CREATE TABLE crypto (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     iv TEXT UNIQUE NOT NULL,
     secret_key TEXT UNIQUE NOT NULL
-    created_at TIMESTAMP NULL
+    created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL
 );
